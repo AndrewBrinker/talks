@@ -241,4 +241,90 @@ That is, without the arrow trailing the parameter list.
 
 Rust provides several different types of compound data types (types constructed as combinations of other types). They are tuples, structs, and enums.
 
+### Tuples
 
+Tuples are heterogeneous collections of data types, where individual fields do not have names. For example:
+
+```rust
+let x = (1i, true);
+let y: (int, bool) = (5i, false);
+```
+
+Once again, type annotations are optional.
+
+Tuples (and in fact all compound types) can be destructured during assignment, like this:
+
+```rust
+let (x, y): (int, int) = (1i, 5i);
+println!("{} {}", x, y);
+// Prints: 1 5
+```
+
+In this case, x is assigned to the first field in the tuple, and y to the second. This is called _destructuring_, because it breaks apart the structure of the compound type to access the internel values directly.
+
+### Structs
+
+Structs are similar to tuples, except their fields have names. They are declared like this:
+
+```rust
+struct Point {
+  x: int,
+  y: int
+}
+```
+
+And can be used like this:
+
+```rust
+struct Point {
+  x: int,
+  y: int
+}
+
+fn main() {
+  let p: Point = Point {x: 1i, y: 5i};
+  println!("{} {}", p.x, p.y);
+  // Prints: 1 5
+}
+```
+
+In this case, the fields are initialized and accessed by their name, rather than by their position.
+
+### Enums
+
+Enums are the final compound type, and they are substantially different from tuples and structs. Tuples and structs are known as _product types_ because their type is the product of their member's types. So a tuple with two ints has type (int, int), or a structure with two ints has type {int, int}. In either case, their final type is essentially the logical AND of the two member types.
+
+Enums are known as _sum types_, and their type is instead the logical OR of the member's types. Take this for example:
+
+```rust
+enum Status {
+  Alive,
+  Dead
+}
+```
+
+Something of type Status can be either Alive or Dead, but not both (no zombies here).
+
+Enums can also have fields in their variants, like so:
+
+```rust
+struct Point {
+  x: int,
+  y: int
+}
+
+struct Length {
+  l: int
+}
+
+enum Shape {
+  Circle(Point, Length),
+  Rectangle(Point, Length, Length)
+}
+```
+
+This is sort of a silly example, but it shows that enums variants can each have their own fields. Essentially, enums allow for the selection of one of several tuples.
+
+## Pattern Matching
+
+One of the major features of Rust is called __pattern matching__, and it's used in a variety of ways.
