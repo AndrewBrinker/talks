@@ -56,13 +56,19 @@ It does this through a powerful type system and compiler which ensure _at compil
 
 In this short introduction (adapted from the official Rust Guide, found at http://doc.rust-lang.org/guide.html) I will walk through some of the basics of Rust usage. This does not include some of the more advanced (and indeed interesting) parts of the language, but should be sufficient for anyone to make basic programs and experiment with the language. Further exploration is encouraged, and all information can be found on the official Rust website: http://www.rust-lang.org/.
 
-## Making Projects with Cargo
+## Cargo
 
 __Cargo__ is the Rust build system and dependency manager, and is used for the creation and management of all real-world Rust projects.
 
+### Making a New Project
+
 Creating a new 'crate' (Cargo's term for projects) is done with `cargo new`. Crates are setup as libraries by default, but can be set to compile into binaries with the `--bin` flag. Thus, to create a new Rust project which compiles into a binary, use `cargo new <name> --bin`.
 
+### Building the Project
+
 Once a project has been created, you can build the project (including all necessary dependencies) using `cargo build`. This is all done based on the contents of the `Cargo.toml` file, which defines the project's configuration.
+
+### Running the Executable
 
 Finally, `cargo run` is available as a shorthand to build and execute the current project.
 
@@ -76,16 +82,27 @@ The basic types in Rust are:
 
 - `int`/`uint`
 - `i8`/`i16`/`i32`/`i64`/`u8`/`u16`/`u32`/`u64`
+- `f32`/`f64`
 - `bool`
 - `char`
+
+### Numeric Types
 
 The first two, `int` and `uint`, are for integers and unsigned integers, respectively. Their size is based on the width of pointers on the current system, and so may vary from machine to machine.
 
 The next ones are also for integers and unsigned integers, but they have explicit widths of 8, 16, 32, or 64 bits. Overflow and underflow on these types is well-defined as wrapping behavior.
 
-Then there's `bool`, Rust's basic true of false type. This is a standby in many languages, but is not commonly used in Rust due to the availability of Pattern Matching, which will be discussed later.
+There are also `f32` and `f64`, which are analogous to `float` and `double` in C or C++.
+
+### Boolean Types
+
+Then there's `bool`, Rust's basic true or false type. This is a standby in many languages, but is not commonly used in Rust due to the availability of Pattern Matching, which will be discussed later.
+
+### Textual Types
 
 Finally, there's `char`, which is defined as a single Unicode code-point. This is the basic building block for strings, which will also be discussed later.
+
+### Variable Declaration
 
 Variables in Rust are declared using the `let` keyword, like so:
 
@@ -98,6 +115,8 @@ Declarations do not have to have a type annotation if a type can be inferred by 
 ```rust
 let x: int = 5;
 ```
+
+### Mutability
 
 All variables in Rust are __immutable by default__, which means something like the following will fail to compile.
 
@@ -116,6 +135,8 @@ x = 10;  // This is just fine.
 This mutability constraint may seem strange, but it forces the programmer to carefully consider whether values should be allowed to be modified, and restricts the possibility of mutable state, particularly in situations with multiple threads working at the same time.
 
 ## Control Flow
+
+### If/Else
 
 The most basic Rust control flow mechanism is the classic if/else:
 
@@ -138,6 +159,8 @@ let x = if true {
 ```
 
 In this case, the value of x is based on the result of the conditional expression being evaluated.
+
+### For Loops
 
 There's also for loops, which look like this:
 
@@ -168,6 +191,8 @@ for elem in a.iter() {
 
 Which will print out the same results as the previous code example.
 
+### While Loops
+
 There are also while loops, which work as you would expect:
 
 ```rust
@@ -176,6 +201,8 @@ while input != answer {
   // Do some stuff
 }
 ```
+
+### Infinite Loops
 
 If you want an infinite loop (only exited by a break), then you should use `loop` instead, because it can be nicely optimized by the compiler:
 
@@ -188,7 +215,7 @@ loop {
 }
 ```
 
-### Functions
+## Functions
 
 Functions are (unsurprisingly) important in Rust. They are defined like so:
 
@@ -209,5 +236,9 @@ fn say_hello() {
 ```
 
 That is, without the arrow trailing the parameter list.
+
+## Compound Data Types
+
+Rust provides several different types of compound data types (types constructed as combinations of other types). They are tuples, structs, and enums.
 
 
