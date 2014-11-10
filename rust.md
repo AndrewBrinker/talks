@@ -1,30 +1,7 @@
 # Introduction to Rust
 
-## Table of Contents
+## To Be Written
 
-1. Making projects with Cargo
-  1. `cargo new`
-  2. `cargo build`
-  3. `cargo run`
-2. Types & Mutability
-  1. Integer types
-  2. Floats and Doubles
-  3. Booleans
-  4. Mutability
-3. Control Flow
-  1. If/Else
-  2. For
-  3. While
-  4. Loop
-4. Functions
-  1. Implicit returns
-5. Compound Data Types
-  1. Tuples
-  2. Structs
-  3. Enums
-6. Pattern Matching
-  1. Non-exhaustive patterns
-  2. Error handling with Option
 7. Strings, Arrays, and Vectors
   1. `String` vs. `&str`
   2. Arrays
@@ -327,4 +304,82 @@ This is sort of a silly example, but it shows that enums variants can each have 
 
 ## Pattern Matching
 
-One of the major features of Rust is called __pattern matching__, and it's used in a variety of ways.
+One of the major features of Rust is called __pattern matching__, which happens using the `match` statement:
+
+```rust
+let x = std::io::stdin.read_line().ok().expect(); // We'll cover this soon.
+match x {
+  x > 10  => println!("Greater than 10!"),
+  x == 10 => println!("Equals 10."),
+  _       => println!("Less than 10...")
+}
+```
+
+Essentially, `match` is a beefed-up version of the `switch` statement from C and C++. It defines a series of cases, along with operations to be performed in each case. However, in Rust, __matches must be exhaustive__. If we modify the above example like so:
+
+```rust
+let x = std::io::stdin.read_line().ok().expect(); // We'll cover this soon.
+match x {
+  x > 10  => println!("Greater than 10!"),
+  x == 10 => println!("Equals 10.")
+}
+```
+
+It no longer compiles! This is because the compiler requires that any match cover every possible case (which is we used the `_` case earlier. It matches everything).
+
+### Pattern Matching & Compound Types
+
+Combined with compound data structures, pattern matching allows for some very interesting code:
+
+```rust
+enum OptionalInt {
+  Value(int),
+  Missing
+}
+
+fn main() {
+  let x = Value(5);
+  let y = Missing;
+
+  match x {
+    Value(n) => println!("x is {}", n),
+    Missing  => println!("x is missing!")
+  }
+
+  match y {
+    Value(n) => println!("y is {}", n),
+    Missing  => println!("y is missing!")
+  }
+}
+```
+
+This `OptionalInt` business may not seem like much, but imagine a function that may either return an integer or nothing (depending on whether the input is valid, for example). In other language it is very easy to forget the check if the result is nothing, and forgetting that can create some real problems down the line for your software.
+
+In Rust, if your function returns an `Option<int>` (the generic form of the `OptionalInt` we just made), the compiler won't compile your code until you check whether the function returns a value or `Nothing`. A whole group of potential errors is gone!
+
+
+## Strings, Arrays, Vectors, and Slices
+
+### Strings
+
+What would a programming language be without strings?
+
+In Rust, there are two string types: `String` and `&str`. The first is a heap-allocated Unicode string of variable size, the second is known as a "string slice" and is a view into a statically-defined string (no allocation).
+
+Here is an example to show what I'm talking about:
+
+```rust
+fn say_hello(name: String) {
+  println!("Hello {}!", name);
+}
+
+fn main() {
+  let name = std::io::stdin.read_line().ok().expect();
+  say_hello(name.trim()); // Trim removes the trailing newline
+  say_hello("Bart Simpson".to_string());
+}
+```
+
+The call to `say_hello()` passes in a `String` without conversion. The second converts a `&str` into a `String`. Generally, it is preferable to avoid turning `&str` into `String` if you can avoid it, as that adds allocations to your programs. For this reasons many functions prefer to work with `&str` inputs.
+
+
