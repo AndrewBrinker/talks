@@ -18,8 +18,8 @@ errors include:
 
 In this small essay I will walk through a collection of five Rust features and
 tools that make creating systems in Rust a joy. They are: Cargo (the Rust
-build tool and package manager), the mutability system, the trait system, the
-lifetime system, and pattern matching.
+build tool and package manager), immutable-by-default variables, the trait
+system, the borrow checker, and pattern matching.
 
 ## Cargo
 
@@ -164,3 +164,61 @@ The compiler noticed immediately that I was trying to reassign an immutable
 variable, and told me both where the reasignment happens and where the original
 happened.
 
+## Traits
+
+Rust is not an Object-Oriented programming language. It has no notion of classes
+or objects, nor a notion of inheritance. Instead, Rust has the __trait system__.
+
+Rust's trait system allows for the creation of generic functions, which can take
+as input any type which implements the desired trait. Take for example the
+following function:
+
+```rust
+fn add_one(x: int) -> int {
+	x + 1
+}
+```
+
+This is a function that takes in an integer, adds 1 to it, and then returns the
+result. It's fairly straightforward, but only works for variables of type `int`.
+If you wanted to use it on something else, you would have to define an
+equivalent function for the other type. This is what happens in C. In Rust, you
+can instead write a function using the trait system to accept anything that
+implements the proper trait.
+
+```rust
+fn add_one<T: Add>(x: T) -> T {
+	x + 1
+}
+```
+
+In this case, the function accepts anything of some type `T` that implements the
+`Add` trait. Internally, the Add trait defines a function like so:
+
+```rust
+pub trait Add<RHS, Result> {
+    fn add(&self, rhs: &RHS) -> Result;
+}
+```
+
+Where `RHS` is the type of the thing being added, the `Result` is the type of
+the result of the addition. So anything that wants to allow adding simply has
+to implement the add trait like this:
+
+```rust
+struct Foo;
+
+impl Add<Foo, Foo> for Foo {
+    fn add(&self, _rhs: &Foo) -> Foo {
+      println!("Adding!");
+      *self
+  }
+}
+
+fn main() {
+  Foo + Foo;
+}
+```
+
+In this case, the code will print `Adding!` once, as the `add()` function is
+called once by the `+` operator.
