@@ -222,3 +222,100 @@ fn main() {
 
 In this case, the code will print `Adding!` once, as the `add()` function is
 called once by the `+` operator.
+
+One thing to note is that as of now, Rust's trait system is not as powerful as
+the C++ template system (which is actually a Turing complete metaprogramming
+language). However, it is sufficiently expressive for what is needs to do, and
+provides a strong basis for the creation and usage of generic functions.
+
+(Incidentally, the Rust trait system borrows heavily from the Haskell typeclass
+system, and is also inspired by C++'s once-proposed "concepts" system, which
+was never implemented in the language.)
+
+## The Borrow Checker
+
+There is a concept in C++ (and other languages too, although it started in C++)
+called RAII. It stands for "Resource Acquisition Is Initialization" and exists
+to allow for the exception safe construction and destruction of objects.
+
+Essentially, RAII says that an object is constructed when it is acquired, and
+destructed when nothing owns it anymore. This way memory isn't leaked because
+someone forgot to deallocate. It all happens automatically.
+
+This is codified in Rust as the _lifetime system_. Rust tracks how long
+everything in the language exists, and will automatically allocate and
+initialize values when they are assigned to variables, and automatically
+deallocate them when their owner goes out of scope, passing along ownership
+as necessary in the meantime.
+
+This means that Rust has to be very careful about tracking when variables
+own values, which is why the __Borrow Checker__ exists. Let's look at some code:
+
+```rust
+fn dangling() -> &int {
+    let i = 1234;
+    return &i;
+}
+
+fn add_one() -> int {
+    let num = dangling();
+    return *num + 1;
+}
+
+fn main() {
+	add_one();
+}
+```
+
+This code fails to compile with the following error message:
+
+```bash
+temp.rs:3:11: 3:13 error: borrowed value does not live long enough
+temp.rs:3     return &i;
+
+temp.rs:1:22: 4:1 note: borrowed pointer must be valid for the anonymous lifetime #1 defined on the block at 1:22...
+temp.rs:1 fn dangling() -> &int {
+temp.rs:2     let i = 1234;
+temp.rs:3     return &i;
+temp.rs:4 }
+
+temp.rs:1:22: 4:1 note: ...but borrowed value is only valid for the block at 1:22
+temp.rs:1 fn dangling() -> &int {
+temp.rs:2     let i = 1234;
+temp.rs:3     return &i;
+temp.rs:4  }
+error: aborting due to previous error
+```
+
+What this means is that the value `1234` created inside the `dangling()`
+function only exists until the end of the function, when it is automatically
+destroyed. So when you try to give out a reference to it, you're giving out
+a reference to something that no longer exists. In other language (like C++)
+this example will lead to the dereferencing of uninitialized memory, which is a
+security hole. In Rust, the borrow checker sees that you're handing out a dead
+reference, and stops you from doing it.
+
+But what if you really wanted to do it this way? Well, with a small change to
+the code you can! Here it is:
+
+```rust
+fn dangling() -> Box<int> {
+    let i = box 1234;
+    return i;
+}
+
+fn add_one() -> int {
+    let num = dangling();
+    return *num + 1;
+}
+
+fn main() {
+	add_one();
+}
+```
+
+In this case, the `dangling()` function was modified to use `box`. This means
+that `i` is now a unique pointer to the memory location containing `1234`. When
+the function terminates, it transfers ownership of that pointer to the caller
+(in this case `num` inside the `add_one()` function). When `add_one()`
+terminates, `num` goes out of scope, and the memory it points to is reclaimed.
