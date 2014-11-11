@@ -1,2 +1,2 @@
-pandoc -s rust.md -o rust.tex
-pdflatex rust.tex
+pandoc -s cool.md -o cool.tex
+pdflatex cool.tex

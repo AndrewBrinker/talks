@@ -1,1 +1,1 @@
-rm rust.log rust.aux rust.out rust.pdf rust.tex
+rm cool.log cool.aux cool.out cool.pdf cool.tex
