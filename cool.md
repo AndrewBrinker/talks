@@ -83,4 +83,84 @@ one which any real-world Rust project would be wrong to do without.
 
 ## Mutability
 
-Test
+In most languages, values are mutable by default. For example, in C++, the
+following is totally valid:
+
+```c++
+int x = 5;
+x = 10;
+```
+
+If you wanted to make the above invalid, you would have to declare `x` to be
+`const`, thus making it immutable:
+
+```c++
+const int x = 5;
+x = 10;  // Error! This isn't allowed.
+```
+
+So, C++ is mutable-by-default. For small programs this is often fine, and it has
+been the standard operating procedure in popular languages for decades. However,
+it has the negative effect of making it easy to accidentally mutate something
+you didn't expect to be changed. After all, when you have to explicitly say that
+something is immutable, it is easy to forget.
+
+Rust avoids this by making everything immutable-by-default. So in Rust, the
+following is invalid:
+
+```rust
+let x: int = 5;
+x = 10;  // Error! This isn't allowed.
+```
+
+If you want to be able to mutate `x`, you have to use the keyword `mut`.
+
+```rust
+let mut x: int = 5;
+x = 10;
+```
+
+This may seem like a pain, but it actually makes life easier in a number of
+different ways. First, it drastically reduces the likelihood that some varaible
+you've declared will change values unexpectedly during runtime. It also makes
+tracking down variables that _can_ change a lot easier (just look for the ones
+declared using `mut`). But the most compelling reason for this decision has to
+do with concurrency.
+
+One of the major problems in concurrency is the issue of _shared state_. When
+values can modified by two threads running simultaneously it is very easy to
+create _data races_, where the result is based on the order in which the
+threads complete.
+
+When variables are mutable-by-default, this can happen quite easily. If even a
+single variable is modified in two threads, the possibly of data races arises.
+
+Yet if variables are immutable-by-default, it becomes much easier to avoid the
+possibility of sharing state between threads. Even better, it becomes easier for
+the compiler to keep track of whether variables shared between threads are
+mutable or immutable, and provide errors and warnings as necessary.
+
+Rust goes even further by providing extremely good error messages related to
+mutability mistakes. Take for example the incorrect Rust code from earlier:
+
+```rust
+let x: int = 5;
+x = 10;
+```
+
+Here is what the compiler has to say about that:
+
+```bash
+main.rs:3:3: 3:9 error: re-assignment of immutable variable `x`
+main.rs:3   x = 10;
+            ^~~~~~
+main.rs:2:7: 2:8 note: prior assignment occurs here
+main.rs:2   let x: int = 5;
+                ^
+error: aborting due to previous error
+```
+
+The compiler noticed immediately that I was trying to reassign an immutable
+variable, and told me both where the reasignment happens and where the original
+happened.
+
