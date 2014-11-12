@@ -1,4 +1,5 @@
 % 5 Cool Things About Rust
+% Andrew Brinker
 
 # Introduction
 
