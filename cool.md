@@ -319,3 +319,216 @@ that `i` is now a unique pointer to the memory location containing `1234`. When
 the function terminates, it transfers ownership of that pointer to the caller
 (in this case `num` inside the `add_one()` function). When `add_one()`
 terminates, `num` goes out of scope, and the memory it points to is reclaimed.
+
+This isn't the only thing that the borrow checker can do. Let's take a look at
+another case:
+
+```rust
+fn main() {
+  let mut x = 5i;
+  let y = &mut x;
+  let z = &mut x;
+}
+```
+
+This code will fail to compile with the following message:
+
+```rust
+main.rs:4:16: 4:17 error: cannot borrow `x` as mutable
+                          more than once at a time
+main.rs:4   let z = &mut x;
+                         ^
+main.rs:3:16: 3:17 note: previous borrow of `x` occurs here;
+                         the mutable borrow prevents subsequent
+                         moves, borrows, or modification of `x`
+                         until the borrow ends
+main.rs:3   let y = &mut x;
+                         ^
+main.rs:5:2: 5:2 note: previous borrow ends here
+main.rs:1 fn main() {
+main.rs:2   let mut x = 5i;
+main.rs:3   let y = &mut x;
+main.rs:4   let z = &mut x;
+main.rs:5 }
+          ^
+error: aborting due to previous error
+```
+
+Here, Rust is saying that we can't have more than one mutable reference to the
+same data at the same time. This makes sense. Thinking back to the shared state
+problem, two mutable references is just as bad as having two pointers. But what
+if we changed them to normal references?
+
+```rust
+fn main() {
+  let mut x = 5i;
+  let y = &x;
+  let z = &x;
+}
+```
+
+It compiles just fine! Essentially, borrowing (which is what a reference is) is
+fine, so long as the thing you're borrowing lives long enough. But owning (which
+is what mutable references and pointer assignment do) has some restrictions to
+make sure you avoid shared state and other sticky problems. And the Borrow
+Checker double checks all of those rules for you and tells you if you're
+breaking them!
+
+## Pattern Matching
+
+In C, if you want to allocate some memory, you use a function like `malloc()`.
+This allocates the memory, or returns a NULL pointer if it fails. In order to
+make sure you never dereference a null pointer, you therefore have to check if
+its null after calling `malloc()`. And you have to remember to this every single
+time you allocate something. If you don't, you have a security hole.
+
+What you really want is some way to represent the idea that the function failed,
+a way to safely represent the concept of nothing. In Rust, this is done through
+an enum called Option, and a concept called __Pattern Matching__.
+
+Let's take a look at an example:
+
+```rust
+use std::rand;
+
+fn odd_or_none () -> Option<uint> {
+  let x = rand::random::<uint>() % 100u;
+  if x % 2 == 1 {
+    Some(x)
+  }
+  else {
+    None
+  }
+}
+
+fn main () {
+  let x: Option<uint> = odd_or_none();
+
+  match x {
+    Some(x) => println!("Odd: {}", x),
+    None    => println!("Nothing!")
+  }
+}
+```
+
+In this program, `odd_or_none()` generates a random number. If that number is
+odd, it returns the number, otherwise it returns None. When you want to use the
+number it returns, you pattern matching against the return value and extract it.
+
+So what happens if you forgot to check for `None`?
+
+```rust
+use std::rand;
+
+fn odd_or_none () -> Option<uint> {
+  let x = rand::random::<uint>() % 100u;
+  if x % 2 == 1 {
+    Some(x)
+  }
+  else {
+    None
+  }
+}
+
+fn main () {
+  let x: Option<uint> = odd_or_none();
+
+  match x {
+    Some(x) => println!("Odd: {}", x)
+  }
+}
+```
+
+You get the error message:
+
+```bash
+main.rs:16:3: 18:4 error: non-exhaustive patterns:
+                          `None` not covered [E0004]
+main.rs:16   match x {
+main.rs:17     Some(x) => println!("Odd: {}", x)
+main.rs:18   }
+error: aborting due to previous error
+```
+
+Look at that! The compiler noticed that you didn't check for `None` and refused
+to compile the program. This is because in Rust, pattern matching has to cover
+every possible case. So the compiler stops you from ever forgetting to check
+for NULL (or `None` in this case).
+
+Let's look at another example, this time it's a simple guess-the-number game:
+
+```rust
+use std::io;
+use std::rand;
+
+fn main() {
+    println!("Guess the number!");
+
+    let secret_number = (rand::random::<uint>() % 100u) + 1u;
+
+    loop {
+
+        println!("Please input your guess.");
+
+        let input = io::stdin().read_line()
+                               .ok()
+                               .expect("Failed to read line");
+        let input_num: Option<uint> = from_str(input.as_slice().trim());
+
+        let num = match input_num {
+            Some(num) => num,
+            None      => {
+                println!("Please input a number!");
+                continue;
+            }
+        };
+
+
+        println!("You guessed: {}", num);
+
+        match cmp(num, secret_number) {
+            Less    => println!("Too small!"),
+            Greater => println!("Too big!"),
+            Equal   => {
+                println!("You win!");
+                return;
+            },
+        }
+    }
+}
+
+fn cmp(a: uint, b: uint) -> Ordering {
+    if a < b { Less }
+    else if a > b { Greater }
+    else { Equal }
+}
+```
+
+This code is a bit longer than what we've seen before, but it shows us several
+examples of pattern matching. First you attempt to convert the input value to
+a number, and then pattern match on the result. If it succeeded you grab the
+number. If it fails, you loop again and prompt the user for another piece of
+input.
+
+Then you check the input guess against the actual number. If it's smaller, you
+say it's too small. If it's bigger, you say it's too big. It it's equal you
+tell the user they've won and then quit the game. And if you forgot to check
+any of those cases the compiler would notice and yell at you to fix it.
+
+This is what Pattern Matching is all about. It provides a way for the compiler
+to automatically verify that you're covering all of your bases, and makes it
+easy for you to know if you're not. Because when you forget, the compiler tells
+you to add what you missed.
+
+## Conclusion
+
+These are just a few great features in Rust. I highly encourage you to check out
+the rest of the language, particularly as it approaches a stable 1.0 version
+release (to be done sometime later this year).
+
+Rust is an interesting language with a serious focus on facilitating the
+development of stable, safe, and scalable systems. Its performance is already
+competitive with C++ in a variety of benchmarks, and it is already receiving
+serious interest from a variety of real-world businesses.
+
+If you want to learn more about Rust, go to http://rust-lang.org
