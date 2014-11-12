@@ -30,7 +30,6 @@ mv $FILE_NAME.aux log/
 mv $FILE_NAME.log log/
 mv $FILE_NAME.out log/
 mv $FILE_NAME.tex log/
-mv $FILE_NAME.toc log/
 
 if [ "$DISPLAY" = "1" ]; then
     open dist/$FILE_NAME.pdf
