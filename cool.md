@@ -17,10 +17,19 @@ errors include:
 - Buffer overflows
 - Segmentation faults
 
-In this small essay I will walk through a collection of five Rust features and
-tools that make creating systems in Rust a joy. They are: Cargo (the Rust
-build tool and package manager), immutable-by-default variables, the trait
-system, the borrow checker, and pattern matching.
+These errors, and others like them, are common and easy to have in existing
+systems languages like C and C++. The conventional wisdom has long been that
+avoiding these errors will bring untenable performance penalties. Rust is proof
+that this isn't true. Instead of adding runtime checks to avoid these problems,
+Rust uses a full-featured collection of compiler checks to verify they can't
+happen, and then generates efficient machine code without any runtime checks.
+
+In this small essay I will walk through a collection of five Rust features
+(Cargo, immutable-by-default variables, traits, the borrow checker, and pattern
+matching) that make creating systems in Rust a joy. They are not the only
+selling points for Rust, but they should provide a nice introduction to some
+of the wonderful things that Rust provides, and should hopefully convince you
+to try it out. If you want to know more, check out [http://rust-lang.org][rust].
 
 # Cargo
 
@@ -536,4 +545,6 @@ development of stable, safe, and scalable systems. Its performance is already
 competitive with C++ in a variety of benchmarks, and it is already receiving
 serious interest from a variety of real-world businesses.
 
-If you want to learn more about Rust, go to http://rust-lang.org
+If you want to learn more about Rust, go to [http://rust-lang.org][rust]
+
+[rust]: http://rust-lang.org
