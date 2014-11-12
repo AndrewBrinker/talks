@@ -1,6 +1,6 @@
-# 5 Cools Things About Rust
+% 5 Cool Things About Rust
 
-## Introduction
+# Introduction
 
 Rust is a safe systems language designed by Mozilla as an alternative to C and
 C++. It is already being used in the creation of large software systems,
@@ -21,7 +21,7 @@ tools that make creating systems in Rust a joy. They are: Cargo (the Rust
 build tool and package manager), immutable-by-default variables, the trait
 system, the borrow checker, and pattern matching.
 
-## Cargo
+# Cargo
 
 Cargo is Rust's build tool and package manager, and while it's still fairly new
 it is already quite good at its job. To start a new library in Rust, simply
@@ -81,7 +81,7 @@ tests you've defined extremely easy.
 For all of these reasons, Cargo is an excellent part of the Rust ecosystem, and
 one which any real-world Rust project would be wrong to do without.
 
-## Mutability
+# Mutability
 
 In most languages, values are mutable by default. For example, in C++, the
 following is totally valid:
@@ -164,7 +164,7 @@ The compiler noticed immediately that I was trying to reassign an immutable
 variable, and told me both where the reasignment happens and where the original
 happened.
 
-## Traits
+# Traits
 
 Rust is not an Object-Oriented programming language. It has no notion of classes
 or objects, nor a notion of inheritance. Instead, Rust has the __trait system__.
@@ -232,7 +232,7 @@ provides a strong basis for the creation and usage of generic functions.
 system, and is also inspired by C++'s once-proposed "concepts" system, which
 was never implemented in the language.)
 
-## The Borrow Checker
+# The Borrow Checker
 
 There is a concept in C++ (and other languages too, although it started in C++)
 called RAII. It stands for "Resource Acquisition Is Initialization" and exists
@@ -273,13 +273,16 @@ This code fails to compile with the following error message:
 temp.rs:3:11: 3:13 error: borrowed value does not live long enough
 temp.rs:3     return &i;
 
-temp.rs:1:22: 4:1 note: borrowed pointer must be valid for the anonymous lifetime #1 defined on the block at 1:22...
+temp.rs:1:22: 4:1 note: borrowed pointer must be valid for
+                        the anonymous lifetime #1 defined
+                        on the block at 1:22...
 temp.rs:1 fn dangling() -> &int {
 temp.rs:2     let i = 1234;
 temp.rs:3     return &i;
 temp.rs:4 }
 
-temp.rs:1:22: 4:1 note: ...but borrowed value is only valid for the block at 1:22
+temp.rs:1:22: 4:1 note: ...but borrowed value is
+                        only valid for the block at 1:22
 temp.rs:1 fn dangling() -> &int {
 temp.rs:2     let i = 1234;
 temp.rs:3     return &i;
@@ -374,7 +377,7 @@ make sure you avoid shared state and other sticky problems. And the Borrow
 Checker double checks all of those rules for you and tells you if you're
 breaking them!
 
-## Pattern Matching
+# Pattern Matching
 
 In C, if you want to allocate some memory, you use a function like `malloc()`.
 This allocates the memory, or returns a NULL pointer if it fails. In order to
@@ -473,7 +476,8 @@ fn main() {
         let input = io::stdin().read_line()
                                .ok()
                                .expect("Failed to read line");
-        let input_num: Option<uint> = from_str(input.as_slice().trim());
+        let input_num: Option<uint> =
+          from_str(input.as_slice().trim());
 
         let num = match input_num {
             Some(num) => num,
@@ -520,7 +524,7 @@ to automatically verify that you're covering all of your bases, and makes it
 easy for you to know if you're not. Because when you forget, the compiler tells
 you to add what you missed.
 
-## Conclusion
+# Conclusion
 
 These are just a few great features in Rust. I highly encourage you to check out
 the rest of the language, particularly as it approaches a stable 1.0 version
