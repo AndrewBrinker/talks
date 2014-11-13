@@ -1,0 +1,17 @@
+#!/usr/bin/env sh
+
+function usage
+{
+    echo "Usage: ./clean"
+}
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -h | --help )    usage
+                         exit
+                         ;;
+    esac
+    shift
+done
+
+rm -rf dist/ log/
