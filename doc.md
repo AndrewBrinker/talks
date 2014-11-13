@@ -49,7 +49,7 @@ This is laziness, and while it may seem odd, it actually allows for some pretty
 cool things. Lets say you want to define a list of all odd integers.
 
 ```haskell
-> let odd = [a | a <- [1..], a % 2 == 1]
+> let odd = [a | a <- [1..], a `mod` 2 == 1]
 ```
 
 Don't worry about the syntax right now. Just know that this lazily creates a
@@ -62,7 +62,7 @@ you want the first ten odd numbers:
 
 ```haskell
 > take 10 odd
-1 3 5 7 9 11 13 15 17 19
+[1, 3, 5, 7, 9, 11, 13, 15, 17, 19]
 ```
 
 Viola! It works!
@@ -244,6 +244,125 @@ Let's try some operations with incorrect types and see what happens:
     In an equation for ‘it’: it = 2 + True
 ```
 
-We'll get to what `(Num Bool)` means cool, but for now just notice that the
+We'll get to what `(Num Bool)` means soon, but for now just notice that the
 compiler immediately saw the operation was invalid, and provided a nice error
-message explaining exactly what went wrong.
+message explaining exactly what went wrong. This is a wonderful thing, and
+something that Haskell is very good at.
+
+## Functions (Which Are Also Types)
+
+So, we've talked a bit about the basic types, now it's time to talk about
+functions. Given that Haskell is a _function_al programming language, you can
+rest assured that functions are extremely important for writing good,
+real-world Haskell programs. Let's start with a simple example of what a
+Haskell function looks like:
+
+```haskell
+addOne :: Int -> Int
+addOne x = x + 1
+```
+
+You say this function earlier (albeit in a slightly different form), but we
+didn't actually talk about what's going on here. Let's walk through it. The
+first line is the _type annotation_. It tells the Haskell compiler what the
+type of this particular function is. In this case, `addOne` is a function
+which takes in an integer and returns an integer. Makes sense, right?
+
+The next line is the actual implementation of the function. It says the
+function name again, and then lists the parameter (just `x` in this case). Then
+it has an equal sign, and the actual function body.
+
+To better illustrate some of what's happening here, let's see another one:
+
+```haskell
+add :: Int -> Int -> Int
+add x y = x + y
+```
+
+In this case, we have two parameters, `x` and `y`, and both are integers. If you
+look at the type annotation though, you'll notice that the syntax for one
+parameter and a return value is the same as the one for two and a return value.
+In fact, the only thing that indicates which one is the return value is the
+fact that it comes last!
+
+In reality, all functions in Haskell actually take _only one parameter_. When
+you write something like the function `add` above, you're actually writing
+something more like this:
+
+```haskell
+add :: Int -> (Int -> Int)
+add x = \y -> x + y
+```
+
+This is a function that takes in a single parameter `x`, and then returns
+another function that takes a parameter `y`, which then returns a single
+integer value.
+
+This process is called __currying__ (named after logician Haskell Curry, for
+whom Haskell is named), and allows you to do some pretty cool things, like this:
+
+```haskell
+> let add x y = x + y
+> let addTen = add 10
+> addTen 5
+15
+```
+
+In this example (which is back in the Haskell interpreter), we remade our `add`
+function without the type annotation (which is optional). Then we made a new
+function by passing only a single parameter to `add`. This function takes in
+a single parameter of its own, and then adds 10 to it! Just like that, we took
+a generic function we had and made a new one like it was nothing. That's the
+power of currying.
+
+That's not the only cool thing you can do with functions. Take a look at this:
+
+```haskell
+map :: (a -> b) -> [a] -> [b]
+map _ [] = []
+map f (x:xs) = fx : map f xs
+```
+
+What's this? This is a classic function called `map`, which is used all the time
+in functional programming. Here's an example of it in use:
+
+```haskell
+> map (* 2) [1,2,3,4]
+[2,4,6,8]
+```
+
+Basicaly, it takes a function (like `(* 2)`) and applies it one-by-one to each
+item in a list (like `[1,2,3,4]`).
+
+What? It takes a function as a parameter? Yes. It does. Functions in Haskell are
+just like anything else. They have a type, and they can be passed around to
+eachother however you like. Let's look at that `map` implementation again:
+
+```haskell
+map :: (a -> b) -> [a] -> [b]
+map _ [] = []
+map f (x:xs) = fx : map f xs
+```
+
+The body is doing some stuff we haven't covered yet, but the type annotation is
+pretty straightforward. It takes in two parameters, one is a function from type
+`a` (which can be anything) to type `b` (which can also be anything), the other
+is a list of values of type `a`. It then converts those values into values of
+type `b`.
+
+In the particular case we showed, `a` and `b` are both `Int`. But they don't
+have to be, and they don't have to be the same thing. Here's another example:
+
+```haskell
+> map show [1,2,3,4]
+["1","2","3","4"]
+```
+
+This time, the `show` function converted each of the numbers into strings. So
+`a` is `Int`, but `b` is `String`.
+
+Learning to read type annotations is important in Haskell, and we'll be
+practicing it throughout these lessons. If you don't quite understand what we've
+already covered, feel free to go through it again.
+
+
