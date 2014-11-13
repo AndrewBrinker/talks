@@ -138,7 +138,7 @@ declared using `mut`). But the most compelling reason for this decision has to
 do with concurrency.
 
 One of the major problems in concurrency is the issue of _shared state_. When
-values can modified by two threads running simultaneously it is very easy to
+values can be modified by two threads running simultaneously it is very easy to
 create _data races_, where the result is based on the order in which the
 threads complete.
 
@@ -171,7 +171,7 @@ error: aborting due to previous error
 ```
 
 The compiler noticed immediately that I was trying to reassign an immutable
-variable, and told me both where the reasignment happens and where the original
+variable, and told me both where the reassignment happens and where the original
 happened.
 
 # Traits
