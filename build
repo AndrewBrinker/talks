@@ -23,7 +23,7 @@ done
 
 mkdir -p dist/
 mkdir -p log/
-pandoc --template=assets/base.template --highlight-style=tango --variable mainfont=Verdana --variable monofont="Menlo" --latex-engine=xelatex -s $FILE_NAME.md -o $FILE_NAME.tex
+pandoc --template=assets/base.template --highlight-style=tango --variable mainfont="Source Sans Pro" --variable monofont="Menlo" --latex-engine=xelatex -s $FILE_NAME.md -o $FILE_NAME.tex
 xelatex $FILE_NAME.tex
 mv $FILE_NAME.pdf dist/
 mv $FILE_NAME.aux log/
