@@ -178,7 +178,7 @@ and moves them to compile time (trust me, this is a lot better).
 The basic types in Haskell are:
 
 - `Int`: The basic integer type, whose size is based on the current machine.
-- `BigInt`: Arbitrary size integer, which can grow (theoretically) infinitely.
+- `Integer`: Arbitrary size integer, which can grow (theoretically) infinitely.
 - `Float`: 32-bit floating point number, as defined by the IEEE
 - `Double`: 64-bit floating point number, also defined by the IEEE
 - `Bool`: True or False. Not much more to say.
@@ -601,4 +601,183 @@ otherwise behave identically to functions.
 
 ## Typeclasses
 
-This is the final big thing before we make a real Haskell program: typeclasses.
+Until this point I've been dancing around something important. In fact, it's one
+of the most important topics in Haskell, and it's something you're definitely
+going to need if you're going to create real world Haskell programs. It's the
+wonderful world of __typeclasses__.
+
+To quote "Learn You A Haskell For Great Good" (a fun, free introductory book
+for Haskell):
+
+> _A typeclass is a sort of interface that defines some behavior. If a type is_
+> _a part of a typeclass, that means that it supports and implements the_
+> _behavior the typeclass describes. A lot of people coming from OOP get_
+> _confused by typeclasses because they think they are like classes in object_
+> _oriented languages. Well, they're not. You can think of them kind of as Java_
+> _interfaces, only better._
+
+Everything in Haskell uses typeclasses. In fact, when I talked about types near
+the beginning of this whole thing, I was sort of lying. Let's take a look at
+what we get when we check the type of the number `5` in GHCi:
+
+```haskell
+> :t 5       -- Note, `:t` exists only in GHCi, not in the Haskell language
+5 :: Num a => a
+```
+
+You would expect `5` to be an `Int`, but it isn't. Instead it's a `Num a`.
+What's that? That's a typeclass!
+
+One of the wonderful things in Haskell is its laziness. That includes not
+deciding on the type of a value until it has to. In this case, Haskell doesn't
+immediately classify `5` as an `Int`. Instead, it keeps it as some sort of
+generic number, and can then turn it into any of the classes that derive from
+the `Num` typeclass. Haskell will actually keep every value as the most general
+type it can until the last minute. This makes your programs flexible.
+
+You actually write functions using typeclasses. Let's take a look at `addOne`
+again:
+
+```haskell
+addOne :: Num a => a -> a
+addOne x = x + 1
+```
+
+Now, instead of specifying `Int` as the input type, I used `Num a`. So, anything
+that derives the `Num` typeclass can be passed into the function. Let's see
+that in action:
+
+```haskell
+> addOne 5
+5
+> addOne 5.0
+6.0
+```
+
+Look at that! It worked for both an integer and a floating point number, all
+thanks to the wonder of typeclasses.
+
+There are actually a number of typeclasses commonly defined and used in Haskell.
+They are:
+
+- `Eq`: The typeclass for equality comparison
+- `Ord`: The typeclass for things that can be ordered sequentially
+- `Show`: The typeclass for stuff that can be turned into strings
+- `Read`: The typeclass for stuff that can be derived from strings
+- `Enum`: The typeclass for things which can be enumerated
+- `Bounded`: The typeclass for things with an upper and lower bound
+- `Num`: The typeclass for numbers
+- `Integral`: The typeclass for integers (`Int` or `Integer`)
+- `Floating`: The typeclass for floating point numbers (`Float` or `Double`)
+
+There are more typeclasses in Haskell (many many more), but these are the basic
+ones.
+
+## Algebraic Data Types
+
+The final thing to know before we finally make a real world Haskell program is
+how to define your very own custom types. With all the talk of types thus far,
+I'm sure you're aware of the importance of type definitions in Haskell. The
+ability to define your own types is one of the language's key features, and it's
+something that is absolutely integral to the creation of any substantive Haskell
+program. Here is what it looks like:
+
+```haskell
+data Bool = False | True
+```
+
+That is the actual in-language definition for `Bool`! Literally, a Bool is
+either `True` or `False`. Those two are called _type constructors_. Literally,
+they are functions that construct values of type `Bool`. Let's take a look
+at another example:
+
+```haskell
+type Point = Float Float
+type Length = Float
+type Radius = Length
+
+data Shape = Circle Point Radius
+           | Rectangle Point Length Length
+```
+
+In this example we've done a few new things. First of all, we've declared
+__type aliases__ using the `type` keyword. Essentially, we've defined new types
+that are equal to come combination of existing types. These are generally done
+to make your types more expressive about what they represent, and to improve
+type checking (the compiler will now treat `Length` and `Float` as different,
+for example, even though they are syntactically the same, because they represent
+different ideas semantically).
+
+Second, we've given our type constructors `Circle` and `Rectangle` parameters!
+So, if we wanted to define a circle, we could do something like this:
+
+```haskell
+> let c = Circle (Point 5.0 5.0) 1.0
+> :t c
+c :: Shape
+```
+
+This constructs a new `Circle` by first constructing a `Point` and then passing
+it to the `Circle` constructor. The created variable is, as expected, of type
+`Shape`.
+
+However, this syntax isn't very appealing, and makes working with these new
+types kind of tedious. Here is a better way of doing it:
+
+```haskell
+data Person = Person { firstName :: String
+                     , lastName :: String
+                     , age :: Int
+                     , height :: Float
+                     , phoneNumber :: String
+                     , flavor :: String
+                     }
+```
+
+In this case, we've defined a new type called `Person` (whose type constructor
+is also called `Person`), and given it named fields of specific types. Now,
+if we define a person, we can use automatically-generated functions to access
+those fields:
+
+```haskell
+> let p = Person "Dylan" "Allbee" 100 150 "867-5309" "Vanilla, duh"
+> flavor p
+"Vanilla, duh"
+```
+
+There we go! That's a much nicer way to work with the constructed variable.
+
+Now, this may seem crazy, but types can actually have parameters. Here's a
+classic example from Haskell itself:
+
+```haskell
+data Maybe a = Nothing | Just a
+```
+
+This is the Maybe typeclass, which is really just a type with a variable in it.
+Let's say you want to write a function which will either return a value or
+nothing at all, you use `Maybe`:
+
+```haskell
+maybe_get :: [Int] -> Maybe Int
+maybe_get []     = Nothing
+maybe_get (x:xs) = Just x
+```
+
+This function will either return the first element of the list, or nothing. And
+see that `Maybe Int` there? That's a concrete version of `Maybe a`, where `a` is
+`Int`. In this case it means that the `Maybe` type has an `Int` internally.
+
+You can also pattern match against `Maybe` (and any other algebraic data type):
+
+```haskell
+num_or_zero :: Maybe Int -> Int
+num_or_zero Nothing = 0
+num_or_zero Just x  = x
+```
+
+This function either extracts the number from `Maybe`, or it returns `0`. That's
+what it looks like when you pattern match against an abstract type.
+
+Interestingly, `[]` (the list constructor) is itself an abstract type. Another
+way of writing the type is `[] a`, although it's usually written `[a]`.
