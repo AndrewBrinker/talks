@@ -249,7 +249,7 @@ compiler immediately saw the operation was invalid, and provided a nice error
 message explaining exactly what went wrong. This is a wonderful thing, and
 something that Haskell is very good at.
 
-## Functions (Which Are Also Types)
+## Functions
 
 So, we've talked a bit about the basic types, now it's time to talk about
 functions. Given that Haskell is a _function_al programming language, you can
@@ -320,7 +320,7 @@ That's not the only cool thing you can do with functions. Take a look at this:
 ```haskell
 map :: (a -> b) -> [a] -> [b]
 map _ [] = []
-map f (x:xs) = fx : map f xs
+map f (x:xs) = f x : map f xs
 ```
 
 What's this? This is a classic function called `map`, which is used all the time
@@ -365,4 +365,22 @@ Learning to read type annotations is important in Haskell, and we'll be
 practicing it throughout these lessons. If you don't quite understand what we've
 already covered, feel free to go through it again.
 
+## GHC: The Glasgow Haskell Compiler
+
+We've covered a lot already. Before continuing on, let's go through the steps of
+making a simple Haskell program and compiling it using the Glasgow Haskell
+Compiler. You'll need these steps in the upcoming sections.
+
+First, Haskell programs are defined in files with the `.hs` extension. So, to
+start a new Haskell file, type something like `touch main.hs`. This will create
+your empty file to begin editing. Next open it up in your favorite text editor,
+and type this:
+
+```haskell
+main :: IO ()
+main = putStrLn "Hello, World!"
+```
+
+This is just a basic Hello World program, like you would see in any other
+language. Save the file, and then compile it with `ghc --make main.hs`.
 
