@@ -341,7 +341,7 @@ eachother however you like. Let's look at that `map` implementation again:
 ```haskell
 map :: (a -> b) -> [a] -> [b]
 map _ [] = []
-map f (x:xs) = fx : map f xs
+map f (x:xs) = f x : map f xs
 ```
 
 The body is doing some stuff we haven't covered yet, but the type annotation is
@@ -382,5 +382,147 @@ main = putStrLn "Hello, World!"
 ```
 
 This is just a basic Hello World program, like you would see in any other
-language. Save the file, and then compile it with `ghc --make main.hs`.
+language. Save the file, and then compile it with `ghc --make main.hs`. You can
+then run the generated file with `./main`. Run it, and make sure it prints
+out `Hello, World!`.
 
+That's how you use the Glasgow Haskell Compiler. We'll be using it throughout
+the remainder of the workshop, so make sure it's running correctly and your code
+compiled and ran successfully. If it didn't, ask for help.
+
+## Pattern Matching
+
+Let's look at that `map` function we defined earlier:
+
+```haskell
+map :: (a -> b) -> [a] -> [b]
+map _ [] = []
+map f (x:xs) = f x : map f xs
+```
+
+This uses something called __pattern matching__. Basically, the function defines
+two unique patterns, and adjusts its behavior accordingly. The first pattern
+says that any function mapped over an empty list results in an empty list. The
+second one says that any function mapped over a list with at least one element
+is the same as the result of applying the function to the first element, and
+then mapping it over the rest.
+
+Let's look at how that would work in this case:
+
+```haskell
+> map (* 2) [1,2,3]
+```
+
+We already said what would happen from running this code, but let's actually
+walk through it:
+
+```haskell
+map (* 2) [1,2,3]                           -- Pattern: map f (x:xs)
+(* 2) 1 : map (* 2) [2,3]                   -- Pattern: map f (x:xs)
+(* 2) 1 : (* 2) 2 : map (* 2) [3]           -- Pattern: map f (x:xs)
+(* 2) 1 : (* 2) 2 : (* 2) 3 : map (* 2) []  -- Pattern: map _ []
+(* 2) 1 : (* 2) 2 : (* 2) 3 : []            -- Eval: map (* 2) [] -> []
+(* 2) 1 : (* 2) 2 : 6 : []                  -- Eval: (* 2) 3      -> 6
+(* 2) 1 : 4 : 6 : []                        -- Eval: (* 2) 2      -> 4
+2 : 4 : 6 : []                              -- Eval: (* 2) 1      -> 1
+2 : 4 : [6]                                 -- Eval: 6 : []       -> []
+2 : [4,6]                                   -- Eval: 4 : [6]      -> [4,6]
+[2,4,6]                                     -- Eval: 2 : [4,6]    -> [2,4,6]
+```
+
+This is what is looks like when the initial code `map (* 2) [1,2,3]` is
+evaluated. At each stage, the map function matches the current input against
+the defined patterns, and runs the code accordingly. Once `map` application is
+done, the multiplication begins to happen, following by the concatenation. In
+the end, you have a list that is simply the original one with each element
+multiplied by 2.
+
+Functions can pattern match in many ways. Here is another example:
+
+```haskell
+lucky :: Int -> IO ()
+lucky 5 = putStrLn "Winner!"
+lucky _ = putStrLn "Meh"
+```
+
+In this case, the function `lucky` will print "Winner!" when the input is 5,
+and "Meh" the rest of the time. It does this by matching the input against a
+particular value. This works just the same as the last example did.
+
+## Guards
+
+When you want to text certain conditionals in Haskell, you can use guards, which
+are similar to pattern matching. Here is an example:
+
+```haskell
+biggerest :: Int -> Int -> Int
+biggerest a b
+  | a >= b    = a
+  | otherwise = b
+```
+
+This function will return the "biggerest" of two numbers, and it uses guards
+to do it. In this case, you test conditionals (like you would in C++ with if and
+else), and execute particular code accordingly.
+
+You can also temporarily bind variables in guards as well, like so:
+
+```haskell
+bmiTell :: Float -> Float -> IO ()
+bmiTell weight height
+    | bmi <= 18.5 = putStrLn "You're a bit under your healthy weight."
+    | bmi <= 25.0 = putStrLn "You're at a healthy weight."
+    | bmi <= 30.0 = putStrLn "You're treading into unhealthy territory."
+    | otherwise   = putStrLn "You have a seriously unhealthy BMI."
+    where bmi = weight / height ^ 2
+```
+
+In this case, the function temporarily defines the variable `bmi`, which is more
+like a constant because it can't be reassigned, and uses it in the guard
+conditionals to avoid having to write (or do) the calculation multiple times.
+
+## Let
+
+You can also declare variables elsewhere using `let` clauses, like so:
+
+```haskell
+hello :: String -> String
+hello name =
+	let phrase = "Hello "
+	in  phrase ++ name
+```
+
+Of course, this is a trivial example, but it shows what I'm talking about. `let`
+is used to instantiate variables. It can also be used to instantiate functions,
+like so:
+
+```haskell
+> [let square x = x * x in (square 5, square 3, square 2)]
+[(25, 9, 4)]
+```
+
+This uses the square function to then create a list containing a single tuple
+of three numbers.
+
+`let`, like most of Haskell, is very flexible, and can be used in a variety of
+contexts. Experiment with it, and see what it can or cannot do.
+
+## Lambdas
+
+Next up is Lambdas, which are just anonymous functions, and are written like
+this:
+
+```haskell
+> map (\x -> x^3) [1,2,3]
+[1,8,27]
+```
+
+This created a function without a name, and it used a special syntax to do it.
+With lambdas, you start with the backslack, and then list the parameters, and
+finished it off with the arrow and function body. Lambdas are really only
+used in places where it's not worth it to define a separate function, and they
+otherwise behave identically to functions.
+
+## Typeclasses
+
+This is the final big thing before we make a real Haskell program: typeclasses.
