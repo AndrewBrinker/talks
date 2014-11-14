@@ -291,7 +291,7 @@ Lists can also be constructed using the magic of __list comprehensions__. They
 look like this:
 
 ```haskell
-let odd = [a | a <- [1..], a `mod` 2 != 0]
+let odd = [a | a <- [1..], a `mod` 2 /= 0]
 ```
 
 This is the same list of odd numbers from before, and it's a list comprehension!
@@ -781,3 +781,303 @@ what it looks like when you pattern match against an abstract type.
 
 Interestingly, `[]` (the list constructor) is itself an abstract type. Another
 way of writing the type is `[] a`, although it's usually written `[a]`.
+
+## Input and Output
+
+Input and output in Haskell are done through something called Monads.
+Essentially, Monads in Haskell are a typeclass fulfilling certain laws, called
+the Monad Laws (which you do not need to know for now). Here is what the
+definition of a Monad looks like in Haskell.
+
+```haskell
+class Monad m where
+  return :: a -> m a
+  (>>=)  :: m a -> (a -> m b) -> m b
+  (>>)   :: m a -> m b -> m b
+  m >> n = m >>= \_ -> n
+```
+
+Essentially, Monad is a typeclass defining four functions (it actually defines
+five, but these are the only four we care about). Monads are essentially a
+"computational context", but let's investigate what that means.
+
+The `return` function given above is not like `return` in other languages you're
+familiar with. It has nothing to do with returning a value from a function,
+instead, it takes a value of some type `a` and lifts it up into the context `m`.
+
+The next function `(>>=)` takes in something in a context, and a function that
+goes from `a` to some `b` also in the context, and in the end it all returns
+something type `b` in the context.
+
+`(>>)` is similar to `(>>=)`, but it doesn't take in a function, instead taking
+in a value directly. Essentially, it's used for chaining operations together
+within the context, while `(>>=)` is used for transformations.
+
+The final one `m >> n` is just `(>>)`'s default implementation when used as an
+infix operator. You can see it's just a transformation `(>>=)` that doesn't
+actually transform anything, meaning it just chains operations together (just
+as I said).
+
+What does this have to do with IO? Well, IO in Haskell is done with Monads, like
+this:
+
+```haskell
+main :: IO ()
+main = putStrLn "Hello, World!"
+```
+
+In this case, `putStrLn` is a function with the type signature
+`String -> IO ()`, meaning it takes a string and outputs it in the IO context.
+
+Things are done this way to avoid the combination of "pure" and "impure" logic.
+Remember that "pure" means that the function should always do the same thing
+for a given input. But IO inherently allows for things to be unpure, because
+the result may change based on some input or output value. By making IO into a
+Monad, which is represented in the type signature, the compiler forcefully
+separates it from the other "pure" logic.
+
+Now, for longer functions, Haskell actually provides a nice notation for working
+with IO:
+
+```haskell
+main :: IO ()
+main = do
+    a <- getLine
+    putStrLn a
+```
+
+This is "`do` notation", and it's used all over the place in Haskell programs to
+handle IO in a nice clean way. It actually looks (and usually works) fairly
+similarly to the structured programming style you're actually used to.
+
+Let's look at what's happening in this specific example. The `a <- getLine`
+works like this: `getLine` is a function with the type signature
+`getLine :: IO String`. The `<-` operator is called "bind", and it pulls the
+`String` out of the IO Monad, making `a` just a normal `String`. Then
+`putStrLn` takes in a `String`, and outputs it to the console, returning with
+type `IO ()`.
+
+These are the basics of IO in Haskell. When working in the IO Monad, the most
+important thing to remember is whether something is currently wrapped up in the
+IO context, or if its a plain old value.
+
+## An Actual Program
+
+You've learned a lot thus far, and you may not understand it all, but now it's
+time to make an actual Haskell program.
+
+The program we're going to make it one that takes in a credit card number
+(don't worry, I have fake numbers you can use to test it), and checks whether
+that number is valid or not, and tells the user.
+
+Before we start, it's important to describe how credit card numbers are
+verified. The process works like this:
+
+- Double every second digit, start from the right. So the last digit is
+  unchanged, and the second from the last digit is doubled. Repeat all the way
+  to the left. So, `[1,3,8,6]` becomes `[2,3,16,6]`.
+- Split the new numbers into a new list of digits, and sum them up. So
+  `[2,3,16,6]` is `2+3+1+6+6 = 18`.
+- Take that number modulo 10, and check whether it's equal to 0. If it is, the
+  number is valid. If it's not, the number is invalid.
+
+Before we work on the IO, let's get the actual credit checking logic and make
+sure that works.
+
+The first thing to do is write a function that takes in a number and splits it
+into digits. This will actually be easier to do in reverse, so let's write two
+functions. The type annotations would look something like this:
+
+```haskell
+toDigits :: (Integral a) => a -> [a]
+toDigitsRev :: (Integral a) => a -> [a]
+```
+
+So both of these functions take in some sort of `Integral a`, and return a list
+of the same type. Makes sense. Next we'll want a function to do the digit
+doubling. The type annotation should look like this:
+
+```haskell
+doubleEveryOther :: (Num a) => [a] -> [a]
+```
+
+This makes sense too. It takes in a list of numbers (we're making it a bit
+broader because we don't absolutely need an integer type here, but we do in the
+previous functions), and returns a list of numbers.
+
+Then we want a function to sum up all the digits. That signature looks like:
+
+```haskell
+sumDigits :: (Integral a) => [a] -> a
+```
+
+Once again, it makes sense. It takes in a list of `Integral` numbers, and
+returns a single number. Finally, we want a function to do the entire
+validation, which will look like:
+
+```haskell
+type CreditCardNumber = Integer
+data Validity = Invalid | Valid
+
+validate :: CreditCardNumber -> Validity
+```
+
+We don't technically need to define our own type here, but it's nice to. This
+function takes in a credit card number, and returns whether it's `Valid` or
+`Invalid`. Then we can pattern match on the answer to selectively do our
+output at the end.
+
+Now, let's get to writing these functions. First up, `toDigits` and
+`toDigitsRev`:
+
+```haskell
+toDigits :: (Integral a) => a -> [a]
+toDigits n = reverse (toDigitsRev n)
+```
+
+`toDigits` is just the verse of `toDigitsRev`.
+
+```haskell
+toDigitsRev :: (Integral a) => a -> [a]
+toDigitsRev 0 = [0]
+toDigitsRev x = x `mod` 10 : toDigitsRev (x `div` 10)
+```
+
+This one pattern matches on the input. If it's 0, just return a list of nothing
+but 0 itself. Otherwise, take the number mod 10, and make that the first item
+in the list, then pass the number divided by 10 recursively to `toDigitsRev`.
+Basically, this goes digit by digit starting in the 1's place and moving left,
+constructing the list as it goes. This is why I said it would be easier to write
+`toDigitsRev`, and why `toDigits` is as simple as it is. With this, we can now
+split up numbers into digits.
+
+Next, we need to implement `doubleEveryOther`:
+
+```haskell
+doubleEveryOther :: (Num a) => [a] -> [a]
+doubleEveryOther n =
+	let pattern = cycle [1, 2]
+	in reverse (zipWith (*) pattern (reverse n))
+```
+
+This is a little ugly (two reversals), but it works. Basically, it first
+constructs an infinite list of `[1,2]` repeated forever (that's what `cycle`
+does). Then it reverses the input list, and multiplies the elements from
+pattern and that reversed list one by one (that's what `zipWith` does). Then it
+reverses the final list. This is how we get the "starting from the right"
+behavior described in the algorithm.
+
+Next we need to sum up the digits like this:
+
+```haskell
+sumDigits :: (Integral a) => [a] -> a
+sumDigits n = sum (concatMap toDigits n)
+```
+
+`concatMap` is new. Basically, it takes a function that generates a list, and
+applies it over an existing list, flattening as it goes. Without the flattening,
+`map toDigits n` with n as `[15,5]` would give us `[[1,5],5]`, which is not what
+we want. Instead, `concatMap` gives as `[1,5,5]`, which _is_ what we want.
+
+Finally, there's the validation function, which brings it all together:
+
+```haskell
+type CreditCardNumber = Integer
+data Validity = Invalid | Valid
+
+validate :: CreditCardNumber -> Validity
+validate n
+	| check == 0 = Valid
+	| check /= 0 = Invalid
+	where check = (sumDigits (doubleEveryOther (toDigits n))) `mod` 10
+```
+
+This does exactly what you would expect. It converts the number into digits,
+doubles every other digits, sums them up, and then takes that whole thing mod
+10. Finally, it checks if the result is 0, and returns the correct Validity
+value. Congratulations, you can now check credit cards!
+
+All that's left then is to add in the IO logic, which should look something
+like this:
+
+```haskell
+result :: Validity -> IO ()
+result Valid   = putStrLn "Hooray! Your number is valid!"
+result Invalid = putStrLn "Sorry, your number is invalid."
+
+main :: IO ()
+main = do
+	putStrLn "Input a credit card number:"
+	number_str <- getLine
+	let number = read number_str :: Integer
+	result (validate number)
+```
+
+Put all of that together, and you have:
+
+```haskell
+import Data.List (reverse, concatMap)
+
+toDigits :: (Integral a) => a -> [a]
+toDigits n = reverse (toDigitsRev n)
+
+toDigitsRev :: (Integral a) => a -> [a]
+toDigitsRev 0 = [0]
+toDigitsRev x = x `mod` 10 : toDigitsRev (x `div` 10)
+
+doubleEveryOther :: (Num a) => [a] -> [a]
+doubleEveryOther n =
+	let pattern = cycle [1, 2]
+	in reverse (zipWith (*) pattern (reverse n))
+
+sumDigits :: (Integral a) => [a] -> a
+sumDigits n = sum (concatMap toDigits n)
+
+type CreditCardNumber = Integer
+data Validity = Invalid | Valid
+
+validate :: CreditCardNumber -> Validity
+validate n
+	| check == 0 = Valid
+	| check != 0 = Invalid
+	where check = (sumDigits (doubleEveryOther (toDigits n))) `mod` 10
+
+result :: Validity -> IO ()
+result Valid   = putStrLn "Hooray! Your number is valid!"
+result Invalid = putStrLn "Sorry, your number is invalid."
+
+main :: IO ()
+main = do
+	putStrLn "Input a credit card number:"
+	number_str <- getLine
+	let number = read number_str :: Integer
+	result (validate number)
+```
+
+Which is just everything from before put together (with a little import at the
+top so we can use the `reverse` and `concatMap` functions). Let's compile it
+with GHC and try it out!
+
+```haskell
+ghc --make
+```
+
+And then try it out with these two numbers:
+
+- 4012888888881881
+- 4012888888881882
+
+The first one should succeed, the second one should fail. If they do, then
+congratulations! You have successfully made your first real Haskell program
+
+## Conclusion
+
+I hope you've learned a lot during this workshop, and that you have some
+appreciation for how cool and different functional programming is. I know it
+may not be the easiest thing to try once you've done object oriented or
+structured programming for a while, but it is still worthwhile to learn and
+still my favorite way of writing programs.
+
+If you want to learn more Haskell, I suggest you check out bitemyapp's "Learn
+Haskell" repository on GitHub, found at
+https://github.com/bitemyapp/learnhaskell.
