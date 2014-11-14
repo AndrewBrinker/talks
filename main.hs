@@ -4,7 +4,7 @@ toDigits :: (Integral a) => a -> [a]
 toDigits n = reverse (toDigitsRev n)
 
 toDigitsRev :: (Integral a) => a -> [a]
-toDigitsRev 0 = [0]
+toDigitsRev 0 = []
 toDigitsRev x = x `mod` 10 : toDigitsRev (x `div` 10)
 
 doubleEveryOther :: (Num a) => [a] -> [a]

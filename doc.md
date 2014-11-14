@@ -1039,7 +1039,7 @@ data Validity = Invalid | Valid
 validate :: CreditCardNumber -> Validity
 validate n
 	| check == 0 = Valid
-	| check != 0 = Invalid
+	| check /= 0 = Invalid
 	where check = (sumDigits (doubleEveryOther (toDigits n))) `mod` 10
 
 result :: Validity -> IO ()
@@ -1059,7 +1059,7 @@ top so we can use the `reverse` and `concatMap` functions). Let's compile it
 with GHC and try it out!
 
 ```haskell
-ghc --make
+ghc --make <file name>
 ```
 
 And then try it out with these two numbers: 4012888888881881 and
