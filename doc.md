@@ -1062,10 +1062,8 @@ with GHC and try it out!
 ghc --make
 ```
 
-And then try it out with these two numbers:
-
-- 4012888888881881
-- 4012888888881882
+And then try it out with these two numbers: 4012888888881881 and
+4012888888881882
 
 The first one should succeed, the second one should fail. If they do, then
 congratulations! You have successfully made your first real Haskell program
@@ -1080,4 +1078,4 @@ still my favorite way of writing programs.
 
 If you want to learn more Haskell, I suggest you check out bitemyapp's "Learn
 Haskell" repository on GitHub, found at
-https://github.com/bitemyapp/learnhaskell.
+[https://github.com/bitemyapp/learnhaskell](https://github.com/bitemyapp/learnhaskell).
