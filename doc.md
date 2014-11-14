@@ -249,6 +249,82 @@ compiler immediately saw the operation was invalid, and provided a nice error
 message explaining exactly what went wrong. This is a wonderful thing, and
 something that Haskell is very good at.
 
+There are two more types I want to talk about: lists and tuples. Together they
+form the basis for much of what you're likely to do in Haskell, and we'll be
+using both throughout the rest of this workshop.
+
+Lists are homogeneous data structures. Every item in a list is of the same type.
+In Haskell, lists look like this:
+
+```haskell
+> [1,2,3]
+```
+
+And their type is this:
+
+```haskell
+[a] -- Where `a` is the type of whatever thing is inside.
+```
+
+All Strings in Haskell are actually lists of characters (`[Char]`). Furthermore,
+all lists are actually constructed like this:
+
+```haskell
+1 : 2 : 3 : []
+```
+
+The `:` operator you see here is called the "prepend" operator, and it takes
+the first argument and puts at the front of the list in the second argument.
+So, solving from the right, the above becomes:
+
+```haskell
+1 : 2 : 3 : []
+1 : 2 : [3]
+1 : [2, 3]
+[1, 2, 3]
+```
+
+All lists in Haskell can be constructed this way, and you can use this to easily
+work with lists in a variety of ways.
+
+Lists can also be constructed using the magic of __list comprehensions__. They
+look like this:
+
+```haskell
+let odd = [a | a <- [1..], a `mod` 2 != 0]
+```
+
+This is the same list of odd numbers from before, and it's a list comprehension!
+The generic syntax for list comprehensions is:
+
+```bash
+[<variable(s)> | <source>, <condition>]
+```
+
+In the odd numbers example, the list comprehension can be read as: the list of
+all a, such that a is a positive integer that is not divisible by 2. As far as
+the source goes, it means a is drawn from the infinite list of integers starting
+with 1.
+
+Now tuples aren't like lists. They are instead heterogenous structures of a
+finite size. Here is an example:
+
+```haskell
+> (5, "Hello")
+```
+
+This is a tuple of type `(Int, [Char])`. Tuples are great for doing things like
+returning multiple values from a function (you put them together in a tuple),
+like this:
+
+```haskell
+what :: Int -> Int -> (Int, Int)
+what a b = (a - 5, b ^ 2)
+```
+
+This function returns a tuple based on some numeric operations on the input
+values. It's not particularly useful, but it illustrates the idea.
+
 ## Functions
 
 So, we've talked a bit about the basic types, now it's time to talk about
