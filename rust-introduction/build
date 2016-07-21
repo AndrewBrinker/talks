@@ -1,0 +1,36 @@
+#!/usr/bin/env sh
+
+function usage
+{
+    echo "Usage: ./build [-d | --display] [-h | --help]"
+}
+
+DISPLAY=
+FILE_NAME=cool
+readonly FILE_NAME
+
+while [ "$1" != "" ]; do
+    case $1 in
+        -d | --display ) shift
+                         DISPLAY=1
+                         ;;
+        -h | --help )    usage
+                         exit
+                         ;;
+    esac
+    shift
+done
+
+mkdir -p dist/
+mkdir -p log/
+pandoc --template=assets/base.template --highlight-style=tango --variable mainfont="Source Sans Pro" --variable monofont="Menlo" --latex-engine=xelatex -s $FILE_NAME.md -o $FILE_NAME.tex
+xelatex $FILE_NAME.tex
+mv $FILE_NAME.pdf dist/
+mv $FILE_NAME.aux log/
+mv $FILE_NAME.log log/
+mv $FILE_NAME.out log/
+mv $FILE_NAME.tex log/
+
+if [ "$DISPLAY" = "1" ]; then
+    open dist/$FILE_NAME.pdf
+fi
